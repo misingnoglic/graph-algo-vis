@@ -1,0 +1,390 @@
+:root {
+  --bg: #0f172a;
+  --panel-bg: #1e293b;
+  /* Undiscovered: Dark Navy with a clear border */
+  --unseen-node: #111827; 
+  --unseen-border: #334155;
+  /* Visited: Now a distinct muted lavender/grey */
+  --visited: #6366f133; /* Transparent Indigo */
+  --visited-border: #818cf8;
+  
+  --frontier: #3b82f6; 
+  --current: #f59e0b;
+  --start: #22c55e;
+  --end: #ef4444;
+}
+
+/* Default state for nodes */
+body {
+  margin: 0;
+  font-family: 'Inter', -apple-system, sans-serif;
+  background-color: var(--bg);
+  color: var(--text);
+}
+
+.app-container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+/* Header & Controls */
+.header {
+  padding: 1.5rem;
+  background: var(--panel-bg);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.controls-top {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+}
+
+select, button {
+  padding: 0.6rem 1rem;
+  border-radius: 8px;
+  border: 1.5px solid var(--border);
+  background: #0f172a;
+  color: white;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+select:hover, button:hover {
+  border-color: var(--accent);
+  background: #1e293b;
+}
+
+button.active {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
+.preset-bar {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  font-size: 0.85rem;
+  color: #94a3b8;
+}
+
+/* Main Area */
+.main-content {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+
+.canvas-wrapper {
+  flex: 1;
+  position: relative;
+  background: #020617; /* Darkest for the graph */
+  display: flex;
+  justify-content: center;
+}
+
+.graph-svg {
+  width: 100%;
+  height: 100%;
+}
+
+/* Graph Elements */
+.edge { stroke: #334155; stroke-width: 2; }
+.edge.path-edge { stroke: var(--current); stroke-width: 4; stroke-dasharray: 8; animation: flow 2s linear infinite; }
+@keyframes flow { to { stroke-dashoffset: -16; } }
+
+.edge-label { font-size: 11px; fill: #64748b; font-weight: bold; }
+
+.node { fill: #1e293b; stroke: #475569; stroke-width: 2; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+.node.start { fill: var(--start); stroke: #4ade80; }
+.node.end { fill: var(--end); stroke: #f87171; }
+.node.visited { fill: var(--visited); stroke: #475569; }
+.node.frontier { fill: var(--frontier); stroke: var(--accent); }
+.node.current { 
+  fill: var(--current); 
+  stroke: white; 
+  stroke-width: 3; 
+  filter: drop-shadow(0 0 8px rgba(245, 158, 11, 0.5)); 
+}
+
+.node-text { text-anchor: middle; font-weight: 800; fill: white; pointer-events: none; font-size: 13px; }
+.heuristic-text { text-anchor: middle; font-size: 10px; fill: #94a3b8; }
+
+/* Timeline & Sidebar */
+.playback-controls {
+  position: absolute;
+  bottom: 24px;
+  background: rgba(30, 41, 59, 0.95);
+  backdrop-filter: blur(8px);
+  padding: 12px 20px;
+  border-radius: 16px;
+  border: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  width: 70%;
+}
+
+.sidebar {
+  width: 320px;
+  background: var(--panel-bg);
+  padding: 1.5rem;
+  border-left: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  overflow-y: auto;
+}
+
+.panel {
+  background: #0f172a;
+  padding: 1.25rem;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+}
+
+.queue-item {
+  padding: 8px;
+  margin-bottom: 4px;
+  background: #1e293b;
+  border-radius: 6px;
+  border-left: 3px solid var(--accent);
+  display: flex;
+  justify-content: space-between;
+}
+
+input[type="range"] {
+  accent-color: var(--accent);
+  cursor: pointer;
+}
+
+.checkbox-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.9rem;
+  color: #cbd5e1;
+}
+
+/* --- Legend Fixes --- */
+.legend-item { 
+  display: flex; 
+  align-items: center; 
+  gap: 12px; 
+  margin-bottom: 8px; 
+  font-size: 0.9rem;
+  color: #cbd5e1;
+}
+
+.dot { 
+  width: 14px; 
+  height: 14px; 
+  border-radius: 50%; 
+  border: 2px solid rgba(255, 255, 255, 0.1); 
+  display: inline-block; /* Ensures it renders */
+  flex-shrink: 0;
+}
+
+/* Specific Legend Colors */
+.dot.start    { background-color: var(--start); border-color: #4ade80; }
+.dot.end      { background-color: var(--end); border-color: #f87171; }
+.dot.current  { background-color: var(--current); border-color: white; }
+.dot.visited  { background-color: var(--visited); border-color: #475569; }
+.dot.frontier { background-color: var(--frontier); border-color: var(--accent); }
+
+.stats-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.stat-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.85rem;
+}
+
+.stat-row label {
+  color: #94a3b8; /* Dimmer text for label */
+}
+
+.stat-row span {
+  font-weight: 600;
+  color: #f1f5f9; /* Bright text for value */
+}
+
+.path-text {
+  font-family: monospace;
+  font-size: 0.75rem;
+  max-width: 150px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sidebar-divider {
+  border: 0;
+  border-top: 1px solid #334155;
+  margin: 5px 0;
+}
+
+.node { 
+  fill: var(--unseen-node); 
+  stroke: var(--unseen-border); 
+  stroke-width: 2; 
+}
+
+.node.visited { 
+  fill: var(--visited); 
+  stroke: var(--visited-border); 
+  stroke-width: 2;
+  stroke-dasharray: 2, 2; /* Visual indicator of "explored" */
+}
+
+.node.frontier { 
+  fill: var(--frontier); 
+  stroke: white; 
+  stroke-width: 3;
+  filter: drop-shadow(0 0 5px rgba(59, 130, 246, 0.5));
+}
+
+.node.current { 
+  fill: var(--current); 
+  stroke: white; 
+  stroke-width: 4;
+}
+
+/* Ensure the root elements allow for full height */
+html, body, #root {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  overflow: hidden; /* Prevents double scrollbars */
+}
+
+.app-container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  width: 100vw; /* Force full viewport width */
+  max-width: none; /* Remove the 1400px limit */
+  margin: 0;
+  background-color: var(--bg);
+}
+
+.main-content {
+  display: flex;
+  flex: 1; /* Takes up all remaining vertical space below header */
+  width: 100%;
+  overflow: hidden;
+}
+
+.canvas-wrapper {
+  flex: 1; /* Graph expands to fill the left side */
+  position: relative;
+  background: #020617;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
+}
+
+/* Ensure the SVG scales or centers properly */
+.graph-svg {
+  width: 100%;
+  height: 100%;
+  max-width: 100%;
+  max-height: 100%;
+}
+
+.sidebar {
+  width: 400px; /* Increased from 320px */
+  background: var(--panel-bg);
+  padding: 1.5rem;
+  border-left: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  overflow-y: auto;
+}
+
+.playback-controls {
+  position: absolute;
+  bottom: 30px;
+  left: 50%;
+  transform: translateX(-50%) translateY(10px); /* Slightly lower when hidden */
+  background: rgba(15, 23, 42, 0.9); /* Matching the deep navy theme */
+  backdrop-filter: blur(12px);
+  padding: 12px 24px;
+  border-radius: 20px;
+  border: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  width: auto; /* Shrink to fit content better */
+  min-width: 500px;
+  
+  /* The "Invisible" Logic */
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: 100;
+}
+
+/* Reveal when hovering over the graph area OR the controls themselves */
+.canvas-wrapper:hover .playback-controls {
+  opacity: 1;
+  visibility: visible;
+  transform: translateX(-50%) translateY(0);
+}
+
+.timeline-slider {
+  flex: 1;
+  height: 6px;
+  border-radius: 3px;
+  background: #334155;
+  outline: none;
+  cursor: pointer;
+}
+
+.timeline-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 18px;
+  height: 18px;
+  background: var(--accent);
+  border-radius: 50%;
+  border: 2px solid white;
+}
+
+.stat-row span {
+  font-family: 'Inter', sans-serif;
+  letter-spacing: 0.5px;
+}
+
+/* Optional: Color code the Yes/No for easier viewing in a lecture hall */
+.stat-row span:contains('✅') { color: #4ade80; }
+.stat-row span:contains('❌') { color: #f87171; }
+
+/* The active search trace (the "current" path being explored) */
+.edge-trace {
+  stroke: #ff00ff; /* Wacky Magenta */
+  stroke-width: 3px; /* Slightly thinner than the final path */
+  stroke-linecap: round;
+  opacity: 0.8;
+}
+
+/* The final optimal path found */
+.edge-path {
+  stroke: #f59e0b; /* Golden Amber (var(--current)) */
+  stroke-width: 5px;
+  stroke-linecap: round;
+  filter: drop-shadow(0 0 5px rgba(245, 158, 11, 0.5));
+}
